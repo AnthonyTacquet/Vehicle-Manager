@@ -24,23 +24,19 @@ class _HomePagePhone extends State<HomePagePhone> {
   void initState() {
     super.initState();
 
-    database.getUser("anthony.tacquet@gmail.com")
-    .then((value) {
-        setState(() {
-          if (value != null){
-            final email = value.email;
-            final password = value.password;
-            final lastName = value.lastName;
-            text = "$email $password $lastName";
-          }
-          else {
-            text = "User not found!";
-          }
+    database.getUser("anthony.tacquet@gmail.com").then((value) {
+      setState(() {
+        if (value != null) {
+          final email = value.email;
+          final password = value.password;
+          final lastName = value.lastName;
+          text = "$email $password $lastName";
+        } else {
+          text = "User not found!";
+        }
       });
     });
-
   }
-
 
   @override
   Widget build(BuildContext context) {
