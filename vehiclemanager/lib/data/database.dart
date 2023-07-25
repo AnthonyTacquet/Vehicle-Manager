@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:vehiclemanager/global/user.dart';
+import 'package:vehiclemanager/global/vehicle.dart';
 
 class MainDatabase {
   // password : DikkeEzel
@@ -48,8 +49,6 @@ class MainDatabase {
     var result =
         await database.rawQuery("SELECT * FROM user WHERE email = ?", [email]);
 
-    print(result);
-
     return result.isNotEmpty ? User.fromMap(result.first) : null;
   }
 
@@ -57,11 +56,23 @@ class MainDatabase {
     final database = await getDatabase();
 
     var result = await database.rawQuery(
-        "SELECT * FROM user WHERE email = ? AND password = ?",
+        "SELECT * FROM user WHERE email = ? AND password = ?;",
         [email, hashString(password)]);
 
-    print(result);
-
     return result.isNotEmpty ? User.fromMap(result.first) : null;
+  }
+
+  Future<List<Vehicle>?> getVehicles() async {
+    final database = await getDatabase();
+    List<Vehicle> vehicles = List.empty(growable: true);
+
+    var results = await database.rawQuery("SELECT * FROM vehicle;");
+
+    if (results.isEmpty) return null;
+
+    for (int i = 0; i < results.length; i++) {
+      vehicles.add(Vehicle.fromMap(results[i]));
+    }
+    return vehicles;
   }
 }
