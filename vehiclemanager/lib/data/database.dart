@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
@@ -11,6 +12,11 @@ class MainDatabase {
   // password : DikkeEzel
 
   void checkUser(String email, String password) {}
+
+  String hashString(String value) {
+    var bytes = utf8.encode(value);
+    return sha256.convert(bytes).toString();
+  }
 
   Future<Database> getDatabase() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +47,18 @@ class MainDatabase {
 
     var result =
         await database.rawQuery("SELECT * FROM user WHERE email = ?", [email]);
+
+    print(result);
+
+    return result.isNotEmpty ? User.fromMap(result.first) : null;
+  }
+
+  Future<User?> login(String email, String password) async {
+    final database = await getDatabase();
+
+    var result = await database.rawQuery(
+        "SELECT * FROM user WHERE email = ? AND password = ?",
+        [email, hashString(password)]);
 
     print(result);
 

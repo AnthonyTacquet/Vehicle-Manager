@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/data/database.dart';
+import 'package:vehiclemanager/global/user.dart';
+import 'package:vehiclemanager/logica/memory.dart';
 
 class HomePagePhone extends StatefulWidget {
   const HomePagePhone({super.key, required this.title});
@@ -10,55 +12,49 @@ class HomePagePhone extends StatefulWidget {
 }
 
 class _HomePagePhone extends State<HomePagePhone> {
-  int _counter = 0;
-  String text = "Loading...";
+  String message = "";
+  User? mainUser;
+  var logedIn = false;
   final database = MainDatabase();
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  final mem = Memory();
 
   @override
   void initState() {
     super.initState();
 
-    database.getUser("anthony.tacquet@gmail.com").then((value) {
-      setState(() {
+    Future<User?>? user = mem.getUserFromMemory();
+    if (user != null) {
+      user.then((value) {
         if (value != null) {
-          final email = value.email;
-          final password = value.password;
-          final lastName = value.lastName;
-          text = "$email $password $lastName";
-        } else {
-          text = "User not found!";
+          mainUser = value;
+          setState(() {
+            logedIn = true;
+          });
         }
       });
-    });
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!logedIn) {
+      return Text("Please login first");
+    }
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              text,
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              "Logged in as ${mainUser!.firstName} ${mainUser!.lastName}",
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/responsive/home_phone.dart';
+import 'package:vehiclemanager/responsive/login_phone.dart';
 import 'package:vehiclemanager/values/colors.dart';
 
 class BottomNavigationBarExample extends StatefulWidget {
@@ -18,12 +19,9 @@ class _BottomNavigationBarExampleState
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomePagePhone(
-      title: "test",
+      title: "Home Page",
     ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
+    LoginPagePhone(title: "Login Page"),
     Text(
       'Index 2: School',
       style: optionStyle,
@@ -54,8 +52,8 @@ class _BottomNavigationBarExampleState
             backgroundColor: darkGrey,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: 'Business',
+            icon: Icon(Icons.login),
+            label: 'Login',
             backgroundColor: darkGrey,
           ),
           BottomNavigationBarItem(

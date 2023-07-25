@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:vehiclemanager/bottom_navigator.dart';
-import 'package:vehiclemanager/responsive/home_phone.dart';
+import 'package:vehiclemanager/values/colors.dart';
 
 main() {
   databaseFactory = databaseFactoryFfi;
@@ -18,10 +18,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vehcile Manager',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: lightblue),
         useMaterial3: true,
       ),
-      home: BottomNavigationBarExample(),
+      home: const BottomNavigationBarExample(),
     );
   }
 }
