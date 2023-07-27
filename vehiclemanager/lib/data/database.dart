@@ -3,11 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-//import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
@@ -24,7 +20,7 @@ class MainDatabase {
     return sha256.convert(bytes).toString();
   }
 
-  Future<Database> getDatabase() async {
+  Future<FirebaseFirestore> getDatabase() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     //return await openDatabase(
@@ -33,42 +29,88 @@ class MainDatabase {
     //String path = await rootBundle.loadString('resources/database.db');
 
     final db = FirebaseFirestore.instance;
-    // .where("capital", isEqualTo: true)
-    db.collection("user").get().then(
-      (querySnapshot) {
-        for (var docSnapshot in querySnapshot.docs) {
-          print('${docSnapshot.id} => ${docSnapshot.data()}');
-        }
-      },
-      onError: (e) => print("Error completing: $e"),
-    );
-
-    return await openDatabase(
-        "/home/anthony/Documents/Git project/Vehicle-Manager/vehiclemanager/resources/database.db");
+    return db;
   }
 
   Future<User?> getUser(String email) async {
     final database = await getDatabase();
 
+    return database
+        .collection("user")
+        .where("email", isEqualTo: email)
+        .limit(1)
+        .get()
+        .then(
+      (querySnapshot) async {
+        for (var docSnapshot in querySnapshot.docs) {
+          String email = docSnapshot.data()["email"];
+          return User(
+              docSnapshot.data()["email"],
+              docSnapshot.data()["password"],
+              docSnapshot.data()["first_name"],
+              docSnapshot.data()["last_name"]);
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
+    /*
     var result =
         await database.rawQuery("SELECT * FROM user WHERE email = ?", [email]);
 
     return result.isNotEmpty ? User.fromMap(result.first) : null;
+    */
   }
 
   Future<User?> login(String email, String password) async {
     final database = await getDatabase();
+
+    return database
+        .collection("user")
+        .where("email", isEqualTo: email)
+        .where("password", isEqualTo: hashString(password))
+        .limit(1)
+        .get()
+        .then(
+      (querySnapshot) async {
+        for (var docSnapshot in querySnapshot.docs) {
+          String email = docSnapshot.data()["email"];
+          return User(
+              docSnapshot.data()["email"],
+              docSnapshot.data()["password"],
+              docSnapshot.data()["first_name"],
+              docSnapshot.data()["last_name"]);
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
+    /*
 
     var result = await database.rawQuery(
         "SELECT * FROM user WHERE email = ? AND password = ?;",
         [email, hashString(password)]);
 
     return result.isNotEmpty ? User.fromMap(result.first) : null;
+
+    */
   }
 
   Future<List<Vehicle>?> getVehicles() async {
     final database = await getDatabase();
     List<Vehicle> vehicles = List.empty(growable: true);
+
+    await database.collection("vehicle").get().then(
+      (querySnapshot) async {
+        for (var docSnapshot in querySnapshot.docs) {
+          vehicles.add(Vehicle(docSnapshot.data()["name"],
+              docSnapshot.data()["plate"], docSnapshot.data()["seats"]));
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
+    /*
 
     var results = await database.rawQuery("SELECT * FROM vehicle;");
 
@@ -77,17 +119,33 @@ class MainDatabase {
     for (int i = 0; i < results.length; i++) {
       vehicles.add(Vehicle.fromMap(results[i]));
     }
+    */
     return vehicles;
   }
 
   Future<bool> isVehicleAvailable(Vehicle vehicle) async {
     final database = await getDatabase();
 
+    return database
+        .collection("summary")
+        .where("vehicle_plate", isEqualTo: vehicle.plate)
+        .where("checkin_date", isNull: true)
+        .get()
+        .then(
+      (querySnapshot) async {
+        if (querySnapshot.docs.isEmpty) return true;
+        return false;
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
+/*
     var results = await database.rawQuery(
         "SELECT * FROM summary WHERE vehicle_plate = ? AND checkin_date IS null ORDER BY datetime(checkout_date) DESC LIMIT 1;",
         [vehicle.plate]);
     if (results.isEmpty) return true;
     return false;
+    */
   }
 
   Future<bool?> checkOutVehicle(Vehicle vehicle) async {
@@ -101,6 +159,24 @@ class MainDatabase {
     return await user.then((value) async {
       if (value == null) return null;
 
+      await database
+          .collection("summary")
+          .where("vehicle_plate", isEqualTo: vehicle.plate)
+          .where("checkin_date", isNull: true)
+          .where("user_email", isEqualTo: value.email)
+          .limit(1)
+          .get()
+          .then(
+        (querySnapshot) async {
+          if (querySnapshot.docs.isEmpty) return null;
+
+          var snap = querySnapshot.docs[0];
+          await snap.reference.update({"checkin_date": datetime});
+        },
+        onError: (e) => print("Error completing: $e"),
+      );
+
+/*
       await database.rawQuery(
           "UPDATE summary SET checkin_date = ? WHERE id = (SELECT id FROM summary WHERE vehicle_plate = ? AND user_email = ? AND checkin_date IS NULL ORDER BY datetime(checkout_date) DESC LIMIT 1);",
           [
@@ -108,6 +184,7 @@ class MainDatabase {
             vehicle.plate,
             value.email,
           ]);
+          */
 
       return await isVehicleAvailable(vehicle);
     });
@@ -124,6 +201,16 @@ class MainDatabase {
     return await user.then((value) async {
       if (value == null) return null;
 
+      final data = {
+        "checkout_date": datetime,
+        "checkin_date": null,
+        "vehicle_plate": vehicle.plate,
+        "user_email": value.email
+      };
+
+      await database.collection("summary").add(data);
+
+/*
       await database.rawQuery(
           "INSERT INTO summary (checkout_date, checkin_date, vehicle_plate, user_email) VALUES (?, null, ?, ?);",
           [
@@ -131,8 +218,8 @@ class MainDatabase {
             vehicle.plate,
             value.email,
           ]);
-      bool val = !await isVehicleAvailable(vehicle);
-      return val;
+          */
+      return !await isVehicleAvailable(vehicle);
     });
   }
 
