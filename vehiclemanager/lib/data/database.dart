@@ -1,14 +1,20 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+//import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
 
 class MainDatabase {
   // password : DikkeEzel
+  // password2: DikZwijn
   final Memory memory = Memory();
 
   void checkUser(String email, String password) {}
@@ -21,9 +27,24 @@ class MainDatabase {
   Future<Database> getDatabase() async {
     WidgetsFlutterBinding.ensureInitialized();
 
+    //return await openDatabase(
+    //    "/home/anthony/Documents/Git project/Vehicle-Manager/vehiclemanager/resources/database.db",
+    //    readOnly: false);
+    //String path = await rootBundle.loadString('resources/database.db');
+
+    final db = FirebaseFirestore.instance;
+    // .where("capital", isEqualTo: true)
+    db.collection("user").get().then(
+      (querySnapshot) {
+        for (var docSnapshot in querySnapshot.docs) {
+          print('${docSnapshot.id} => ${docSnapshot.data()}');
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+
     return await openDatabase(
-        "/home/anthony/Documents/Git project/Vehicle-Manager/vehiclemanager/resources/database.db",
-        readOnly: false);
+        "/home/anthony/Documents/Git project/Vehicle-Manager/vehiclemanager/resources/database.db");
   }
 
   Future<User?> getUser(String email) async {

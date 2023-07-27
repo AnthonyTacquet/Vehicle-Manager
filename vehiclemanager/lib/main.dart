@@ -1,12 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:vehiclemanager/bottom_navigator.dart';
 import 'package:vehiclemanager/values/colors.dart';
 
-main() {
-  databaseFactory = databaseFactoryFfi;
-  //databaseFactory = databaseFactoryFfiWeb;
-
+main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: "AIzaSyAiITRGcfjWmWsZQmNpenthOKdlhMeCmcs",
+          appId: "1:588063493707:web:3088c685339bd1bdb007ce",
+          messagingSenderId: "588063493707",
+          projectId: "vehicle-manager-f4847"));
   runApp(const MyApp());
 }
 

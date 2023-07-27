@@ -32,6 +32,31 @@
   <title>vehiclemanager</title>
   <link rel="manifest" href="manifest.json">
 
+  <script type="module">
+
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "firebase/app";
+    import { getAnalytics } from "firebase/analytics";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyAiITRGcfjWmWsZQmNpenthOKdlhMeCmcs",
+      authDomain: "vehicle-manager-f4847.firebaseapp.com",
+      projectId: "vehicle-manager-f4847",
+      storageBucket: "vehicle-manager-f4847.appspot.com",
+      messagingSenderId: "588063493707",
+      appId: "1:588063493707:web:3088c685339bd1bdb007ce",
+      measurementId: "G-KSM3QQ535F"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+
   <script>
     // The value below is injected by flutter build, do not touch.
     var serviceWorkerVersion = null;
