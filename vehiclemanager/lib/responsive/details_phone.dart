@@ -5,17 +5,18 @@ import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
 import 'package:vehiclemanager/values/colors.dart';
 
-class HomePagePhone extends StatefulWidget {
-  const HomePagePhone({super.key, required this.title});
+class DetailsPagePhone extends StatefulWidget {
+  const DetailsPagePhone({super.key, required this.title});
   final String title;
 
   @override
-  State<HomePagePhone> createState() => _HomePagePhone();
+  State<DetailsPagePhone> createState() => _DetailsPagePhone();
 }
 
-class _HomePagePhone extends State<HomePagePhone>
+class _DetailsPagePhone extends State<DetailsPagePhone>
     with TickerProviderStateMixin {
   String message = "";
+
   bool messageVisibile = false;
   Color messageColor = Colors.red;
 
@@ -84,32 +85,8 @@ class _HomePagePhone extends State<HomePagePhone>
     });
   }
 
-  void checkIn() {
-    database.checkInVehicle(selectedItem).then((value) {
-      if (value == null || !value) {
-        showMessage("An error occured", true);
-        return;
-      }
-      showMessage("Succesfully checked in!", false);
-
-      setState(() {
-        checkedIn = true;
-      });
-    });
-  }
-
-  void checkOut() {
-    database.checkOutVehicle(selectedItem).then((value) {
-      if (value == null || !value) {
-        showMessage("An error occured", true);
-        return;
-      }
-      showMessage("Succesfully checked out!", false);
-
-      setState(() {
-        checkedIn = false;
-      });
-    });
+  void changeVehicle(Vehicle? vehicle) {
+    setState(() => selectedItem = vehicle!);
   }
 
   void showMessage(String message, bool error) {
@@ -223,32 +200,14 @@ class _HomePagePhone extends State<HomePagePhone>
                       message,
                       style: TextStyle(color: messageColor),
                     )),
-                Visibility(
-                  visible: !checkedIn,
-                  child: DropdownButton<Vehicle>(
-                    items: items,
-                    onChanged: (newVal) =>
-                        setState(() => selectedItem = newVal!),
-                    value: selectedItem,
-                  ),
+                DropdownButton<Vehicle>(
+                  items: items,
+                  onChanged: (newVal) => changeVehicle(newVal),
+                  value: selectedItem,
                 ),
-                Visibility(
-                  visible: !checkedIn,
-                  child: TextButton(
-                      onPressed: checkIn,
-                      child: const Text(
-                        "CHECK IN",
-                        style: TextStyle(color: Colors.green),
-                      )),
-                ),
-                Visibility(
-                    visible: checkedIn,
-                    child: TextButton(
-                        onPressed: checkOut,
-                        child: const Text(
-                          "CHECK OUT",
-                          style: TextStyle(color: Colors.red),
-                        )))
+                Text("Name: ${selectedItem.name}"),
+                Text("Plate: ${selectedItem.plate}"),
+                Text("Seats: ${selectedItem.seats}")
               ],
             ),
           ),

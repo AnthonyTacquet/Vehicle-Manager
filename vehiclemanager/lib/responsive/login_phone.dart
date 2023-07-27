@@ -43,8 +43,13 @@ class _LoginPagePhone extends State<LoginPagePhone>
           setState(() {
             logedIn = true;
           });
+        } else {
+          setState(() {});
         }
       });
+    } else {
+      loading = false;
+      setState(() {});
     }
   }
 
@@ -127,6 +132,13 @@ class _LoginPagePhone extends State<LoginPagePhone>
 
     if (logedIn) {
       return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Login",
+            style: TextStyle(color: white),
+          ),
+          backgroundColor: darkGrey,
+        ),
         body: Container(
             color: darkGrey,
             child: Center(
@@ -140,7 +152,6 @@ class _LoginPagePhone extends State<LoginPagePhone>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Text("LOG OUT"),
                     TextButton(onPressed: logout, child: const Text("LOG OUT"))
                   ],
                 ),
@@ -150,6 +161,13 @@ class _LoginPagePhone extends State<LoginPagePhone>
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Login",
+          style: TextStyle(color: white),
+        ),
+        backgroundColor: darkGrey,
+      ),
       body: Container(
           color: darkGrey,
           child: Center(

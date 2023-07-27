@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vehiclemanager/responsive/details_phone.dart';
 import 'package:vehiclemanager/responsive/home_phone.dart';
 import 'package:vehiclemanager/responsive/login_phone.dart';
 import 'package:vehiclemanager/values/colors.dart';
@@ -22,14 +23,7 @@ class _BottomNavigationBarExampleState
       title: "Home Page",
     ),
     LoginPagePhone(title: "Login Page"),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: Settings',
-      style: optionStyle,
-    ),
+    DetailsPagePhone(title: "Details Page")
   ];
 
   void _onItemTapped(int index) {
@@ -45,30 +39,28 @@ class _BottomNavigationBarExampleState
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, // Fixed
+        backgroundColor: darkGrey,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
-            backgroundColor: darkGrey,
+            backgroundColor: white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.login),
             label: 'Login',
-            backgroundColor: darkGrey,
+            backgroundColor: white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: 'School',
-            backgroundColor: darkGrey,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-            backgroundColor: darkGrey,
+            icon: Icon(Icons.details),
+            label: 'Detaisl',
+            backgroundColor: white,
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: lightblue,
+        selectedItemColor: white,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
     );
