@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/data/database.dart';
+import 'package:vehiclemanager/global/default_pages.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/logica/memory.dart';
 import 'package:vehiclemanager/values/colors.dart';
@@ -15,10 +16,10 @@ class LoginPagePhone extends StatefulWidget {
 class _LoginPagePhone extends State<LoginPagePhone>
     with TickerProviderStateMixin {
   String message = "";
+  DefaultPages defaultPages = DefaultPages();
   var visibility = false;
   var logedIn = false;
   bool loading = true;
-  late AnimationController controller;
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final database = MainDatabase();
@@ -28,12 +29,6 @@ class _LoginPagePhone extends State<LoginPagePhone>
   void initState() {
     super.initState();
     logedIn = false;
-
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    controller.repeat(reverse: true);
 
     Future<User?>? user = mem.getUserFromMemory();
     if (user != null) {
@@ -58,7 +53,6 @@ class _LoginPagePhone extends State<LoginPagePhone>
     // Clean up the controller when the widget is disposed.
     emailController.dispose();
     passwordController.dispose();
-    controller.dispose();
     super.dispose();
   }
 
@@ -105,29 +99,7 @@ class _LoginPagePhone extends State<LoginPagePhone>
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Scaffold(
-        body: Container(
-          color: darkGrey,
-          child: Center(
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: white,
-              ),
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const SizedBox(height: 30),
-                    CircularProgressIndicator(
-                      value: controller.value,
-                    ),
-                  ]),
-            ),
-          ),
-        ),
-      );
+      return defaultPages.loadingPage();
     }
 
     if (logedIn) {

@@ -1,0 +1,1 @@
+enum CheckinState { AVAILABLE, CURRENT, NOT_AVAILABLE }

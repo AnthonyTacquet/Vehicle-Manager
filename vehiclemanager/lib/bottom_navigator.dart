@@ -15,8 +15,6 @@ class BottomNavigationBarExample extends StatefulWidget {
 class _BottomNavigationBarExampleState
     extends State<BottomNavigationBarExample> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
   static const List<Widget> _widgetOptions = <Widget>[
     HomePagePhone(
@@ -54,7 +52,7 @@ class _BottomNavigationBarExampleState
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.details),
-            label: 'Detaisl',
+            label: 'Details',
             backgroundColor: white,
           ),
         ],

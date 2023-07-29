@@ -1,5 +1,9 @@
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/data/database.dart';
+import 'package:vehiclemanager/global/default_pages.dart';
+import 'package:vehiclemanager/global/enum/checkin_state.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
@@ -15,31 +19,24 @@ class HomePagePhone extends StatefulWidget {
 
 class _HomePagePhone extends State<HomePagePhone>
     with TickerProviderStateMixin {
+  DefaultPages defaultPages = DefaultPages();
   String message = "";
   bool messageVisibile = false;
+  CheckinState checkinState = CheckinState.NOT_AVAILABLE;
   Color messageColor = Colors.red;
 
-  bool checkedIn = false;
+  User? vehicleUser;
 
   User? mainUser;
   List<DropdownMenuItem<Vehicle>> items = List.empty(growable: true);
-  Vehicle selectedItem = Vehicle("", "", 0);
+  Vehicle selectedItem = const Vehicle("", "", 0);
   var logedIn = false;
   bool loading = true;
-  late AnimationController controller;
   final database = MainDatabase();
   final mem = Memory();
 
   @override
   void initState() {
-    super.initState();
-
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    controller.repeat(reverse: true);
-
     Future<User?>? user = mem.getUserFromMemory();
     if (user != null) {
       user.then((value) {
@@ -59,55 +56,85 @@ class _HomePagePhone extends State<HomePagePhone>
         setState(() {
           items.clear();
           value.map((item) {
-            return DropdownMenuItem<Vehicle>(
+            items.add(DropdownMenuItem<Vehicle>(
               value: item,
               child: Text(item.name),
-            );
+            ));
           }).toList();
           selectedItem = value.first;
 
           database.isVehicleAvailable(selectedItem).then((value) {
             setState(() {
-              checkedIn = !value;
+              checkinState = value;
+
+              if (value == CheckinState.NOT_AVAILABLE) {
+                database.getUserDrivingVehicle(selectedItem).then((value2) {
+                  setState(() {
+                    vehicleUser = value2;
+                  });
+                });
+              } else {
+                vehicleUser = null;
+              }
             });
           });
         });
       }
+    });
+    super.initState();
+  }
+
+  void changeVehicle(Vehicle? vehicle) {
+    if (vehicle == null) return;
+
+    setState(() {
+      selectedItem = vehicle;
+      isVehicleAvailable(selectedItem);
     });
   }
 
   void isVehicleAvailable(Vehicle vehicle) {
     database.isVehicleAvailable(vehicle).then((value) {
       setState(() {
-        checkedIn = value;
+        checkinState = value;
+
+        if (value == CheckinState.NOT_AVAILABLE) {
+          database.getUserDrivingVehicle(vehicle).then((value2) {
+            setState(() {
+              vehicleUser = value2;
+            });
+          });
+        } else {
+          vehicleUser = null;
+        }
       });
     });
   }
 
   void checkIn() {
     database.checkInVehicle(selectedItem).then((value) {
-      if (value == null || !value) {
+      if (value == null || value == CheckinState.NOT_AVAILABLE) {
         showMessage("An error occured", true);
         return;
       }
       showMessage("Succesfully checked in!", false);
 
       setState(() {
-        checkedIn = true;
+        checkinState = CheckinState.CURRENT;
       });
     });
   }
 
   void checkOut() {
     database.checkOutVehicle(selectedItem).then((value) {
-      if (value == null || !value) {
+      if (value == null || value == CheckinState.NOT_AVAILABLE) {
         showMessage("An error occured", true);
         return;
       }
       showMessage("Succesfully checked out!", false);
 
       setState(() {
-        checkedIn = false;
+        checkinState = CheckinState.AVAILABLE;
       });
     });
   }
@@ -132,37 +159,9 @@ class _HomePagePhone extends State<HomePagePhone>
   }
 
   @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Scaffold(
-        body: Container(
-          color: darkGrey,
-          child: Center(
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: white,
-              ),
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const SizedBox(height: 30),
-                    CircularProgressIndicator(
-                      value: controller.value,
-                    ),
-                  ]),
-            ),
-          ),
-        ),
-      );
+      return defaultPages.loadingPage();
     }
 
     if (items.isEmpty) {
@@ -175,27 +174,9 @@ class _HomePagePhone extends State<HomePagePhone>
     }
 
     if (!logedIn) {
-      return Scaffold(
-        body: Container(
-          color: darkGrey,
-          child: Center(
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: white,
-              ),
-              child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text("You are not logged in yet!"),
-                  ]),
-            ),
-          ),
-        ),
-      );
+      return defaultPages.notLoggedInPage();
     }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -224,16 +205,20 @@ class _HomePagePhone extends State<HomePagePhone>
                       style: TextStyle(color: messageColor),
                     )),
                 Visibility(
-                  visible: !checkedIn,
+                  visible: checkinState != CheckinState.CURRENT,
                   child: DropdownButton<Vehicle>(
                     items: items,
-                    onChanged: (newVal) =>
-                        setState(() => selectedItem = newVal!),
+                    onChanged: (newVal) => changeVehicle(newVal),
                     value: selectedItem,
                   ),
                 ),
                 Visibility(
-                  visible: !checkedIn,
+                    visible: checkinState == CheckinState.NOT_AVAILABLE,
+                    child: Text(
+                      "This vehicle is currently in use by ${vehicleUser.isNull ? "someone else!" : vehicleUser!.firstName} ${vehicleUser.isNull ? "" : vehicleUser!.lastName}",
+                    )),
+                Visibility(
+                  visible: checkinState == CheckinState.AVAILABLE,
                   child: TextButton(
                       onPressed: checkIn,
                       child: const Text(
@@ -242,7 +227,7 @@ class _HomePagePhone extends State<HomePagePhone>
                       )),
                 ),
                 Visibility(
-                    visible: checkedIn,
+                    visible: checkinState == CheckinState.CURRENT,
                     child: TextButton(
                         onPressed: checkOut,
                         child: const Text(

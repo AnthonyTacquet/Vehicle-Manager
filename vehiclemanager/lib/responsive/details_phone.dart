@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/data/database.dart';
+import 'package:vehiclemanager/global/default_pages.dart';
+import 'package:vehiclemanager/global/enum/checkin_state.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
@@ -16,30 +18,22 @@ class DetailsPagePhone extends StatefulWidget {
 class _DetailsPagePhone extends State<DetailsPagePhone>
     with TickerProviderStateMixin {
   String message = "";
-
+  CheckinState checkinState = CheckinState.NOT_AVAILABLE;
+  DefaultPages defaultPages = DefaultPages();
   bool messageVisibile = false;
   Color messageColor = Colors.red;
-
-  bool checkedIn = false;
 
   User? mainUser;
   List<DropdownMenuItem<Vehicle>> items = List.empty(growable: true);
   Vehicle selectedItem = Vehicle("", "", 0);
   var logedIn = false;
   bool loading = true;
-  late AnimationController controller;
   final database = MainDatabase();
   final mem = Memory();
 
   @override
   void initState() {
     super.initState();
-
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    controller.repeat(reverse: true);
 
     Future<User?>? user = mem.getUserFromMemory();
     if (user != null) {
@@ -60,16 +54,16 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
         setState(() {
           items.clear();
           value.map((item) {
-            return DropdownMenuItem<Vehicle>(
+            items.add(DropdownMenuItem<Vehicle>(
               value: item,
               child: Text(item.name),
-            );
+            ));
           }).toList();
           selectedItem = value.first;
 
           database.isVehicleAvailable(selectedItem).then((value) {
             setState(() {
-              checkedIn = !value;
+              checkinState = value;
             });
           });
         });
@@ -80,13 +74,18 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
   void isVehicleAvailable(Vehicle vehicle) {
     database.isVehicleAvailable(vehicle).then((value) {
       setState(() {
-        checkedIn = value;
+        checkinState = value;
       });
     });
   }
 
   void changeVehicle(Vehicle? vehicle) {
-    setState(() => selectedItem = vehicle!);
+    if (vehicle == null) return;
+
+    setState(() {
+      selectedItem = vehicle;
+      isVehicleAvailable(selectedItem);
+    });
   }
 
   void showMessage(String message, bool error) {
@@ -110,36 +109,13 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
 
   @override
   void dispose() {
-    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Scaffold(
-        body: Container(
-          color: darkGrey,
-          child: Center(
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: white,
-              ),
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const SizedBox(height: 30),
-                    CircularProgressIndicator(
-                      value: controller.value,
-                    ),
-                  ]),
-            ),
-          ),
-        ),
-      );
+      return defaultPages.loadingPage();
     }
 
     if (items.isEmpty) {
@@ -152,26 +128,7 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
     }
 
     if (!logedIn) {
-      return Scaffold(
-        body: Container(
-          color: darkGrey,
-          child: Center(
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: white,
-              ),
-              child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text("You are not logged in yet!"),
-                  ]),
-            ),
-          ),
-        ),
-      );
+      return defaultPages.notLoggedInPage();
     }
     return Scaffold(
       appBar: AppBar(
