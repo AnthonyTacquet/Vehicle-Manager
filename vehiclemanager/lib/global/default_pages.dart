@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vehiclemanager/global/summary.dart';
 import 'package:vehiclemanager/values/colors.dart';
 
 class DefaultPages {
@@ -46,6 +47,45 @@ class DefaultPages {
           ),
         ),
       ),
+    );
+  }
+
+  static Container summaryContainer(Summary summary) {
+    TextStyle bigText = const TextStyle(fontSize: 15);
+    TextStyle smallText = const TextStyle(fontSize: 12);
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      child: Column(children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              summary.user!.email,
+              style: bigText,
+            ),
+            Text(
+              summary.vehicle!.plate,
+              style: bigText,
+            )
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              summary.checkoutDate.toString(),
+              style: smallText,
+            ),
+            Text(
+              summary.checkinDate == null
+                  ? "Currently in use!"
+                  : summary.checkinDate.toString(),
+              style: smallText,
+            )
+          ],
+        )
+      ]),
     );
   }
 }

@@ -25,7 +25,7 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
 
   User? mainUser;
   List<DropdownMenuItem<Vehicle>> items = List.empty(growable: true);
-  Vehicle selectedItem = Vehicle("", "", 0);
+  Vehicle selectedItem = const Vehicle("", "", 0);
   var logedIn = false;
   bool loading = true;
   final database = MainDatabase();
@@ -107,10 +107,6 @@ class _DetailsPagePhone extends State<DetailsPagePhone>
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

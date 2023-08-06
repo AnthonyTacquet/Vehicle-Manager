@@ -1,5 +1,4 @@
-import 'dart:js_interop';
-
+//import 'dart:js_interop';
 import 'package:flutter/material.dart';
 import 'package:vehiclemanager/data/database.dart';
 import 'package:vehiclemanager/global/default_pages.dart';
@@ -88,6 +87,7 @@ class _HomePagePhone extends State<HomePagePhone>
     if (vehicle == null) return;
 
     setState(() {
+      messageVisibile = false;
       selectedItem = vehicle;
       isVehicleAvailable(selectedItem);
     });
@@ -112,16 +112,26 @@ class _HomePagePhone extends State<HomePagePhone>
   }
 
   void checkIn() {
-    database.checkInVehicle(selectedItem).then((value) {
-      if (value == null || value == CheckinState.NOT_AVAILABLE) {
-        showMessage("An error occured", true);
-        return;
-      }
-      showMessage("Succesfully checked in!", false);
+    database.isUserBusy(mainUser!).then((value) {
+      if (value == CheckinState.CURRENT) {
+        setState(() {
+          message = "You are already checked in antoher vehicle!";
+          messageVisibile = true;
+          messageColor = Colors.red;
+        });
+      } else {
+        database.checkInVehicle(selectedItem).then((value) {
+          if (value == null || value == CheckinState.NOT_AVAILABLE) {
+            showMessage("An error occured", true);
+            return;
+          }
+          showMessage("Succesfully checked in!", false);
 
-      setState(() {
-        checkinState = CheckinState.CURRENT;
-      });
+          setState(() {
+            checkinState = CheckinState.CURRENT;
+          });
+        });
+      }
     });
   }
 
@@ -215,7 +225,7 @@ class _HomePagePhone extends State<HomePagePhone>
                 Visibility(
                     visible: checkinState == CheckinState.NOT_AVAILABLE,
                     child: Text(
-                      "This vehicle is currently in use by ${vehicleUser.isNull ? "someone else!" : vehicleUser!.firstName} ${vehicleUser.isNull ? "" : vehicleUser!.lastName}",
+                      "This vehicle is currently in use by ${vehicleUser == null ? "someone else!" : vehicleUser!.firstName} ${vehicleUser == null ? "" : vehicleUser!.lastName}",
                     )),
                 Visibility(
                   visible: checkinState == CheckinState.AVAILABLE,

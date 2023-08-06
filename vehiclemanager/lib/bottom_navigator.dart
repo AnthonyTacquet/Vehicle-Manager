@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vehiclemanager/responsive/details_phone.dart';
 import 'package:vehiclemanager/responsive/home_phone.dart';
 import 'package:vehiclemanager/responsive/login_phone.dart';
+import 'package:vehiclemanager/responsive/summary_phone.dart';
 import 'package:vehiclemanager/values/colors.dart';
 
 class BottomNavigationBarExample extends StatefulWidget {
@@ -20,8 +21,9 @@ class _BottomNavigationBarExampleState
     HomePagePhone(
       title: "Home Page",
     ),
+    DetailsPagePhone(title: "Details Page"),
+    SummaryPagePhone(title: "Summary Page"),
     LoginPagePhone(title: "Login Page"),
-    DetailsPagePhone(title: "Details Page")
   ];
 
   void _onItemTapped(int index) {
@@ -33,6 +35,7 @@ class _BottomNavigationBarExampleState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: white,
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
@@ -43,17 +46,22 @@ class _BottomNavigationBarExampleState
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
-            backgroundColor: white,
+            backgroundColor: Colors.red,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.document_scanner),
+            label: 'Details',
+            backgroundColor: Colors.amber,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Summary',
+            backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.login),
             label: 'Login',
-            backgroundColor: white,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.details),
-            label: 'Details',
-            backgroundColor: white,
+            backgroundColor: Colors.purple,
           ),
         ],
         currentIndex: _selectedIndex,

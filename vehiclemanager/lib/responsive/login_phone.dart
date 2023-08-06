@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vehiclemanager/data/database.dart';
 import 'package:vehiclemanager/global/default_pages.dart';
 import 'package:vehiclemanager/global/user.dart';
@@ -59,6 +60,8 @@ class _LoginPagePhone extends State<LoginPagePhone>
   void login() {
     String email = emailController.text;
     String password = passwordController.text;
+
+    TextInput.finishAutofillContext();
 
     Future<User?> user = database.login(email, password);
 
@@ -153,7 +156,6 @@ class _LoginPagePhone extends State<LoginPagePhone>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const Text("LOG IN"),
                   Visibility(
                       visible: visibility,
                       child: Text(
@@ -162,16 +164,22 @@ class _LoginPagePhone extends State<LoginPagePhone>
                       )),
                   const Text("Email"),
                   TextField(
+                    autofillHints: const [
+                      AutofillHints.username,
+                      AutofillHints.email
+                    ],
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Enter a search term',
+                      hintText: 'Enter your email',
                     ),
                     controller: emailController,
                   ),
                   const Text("Password"),
                   TextField(
+                    autofillHints: const [AutofillHints.password],
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
+                      hintText: 'Enter your password',
                     ),
                     controller: passwordController,
                     obscureText: true,

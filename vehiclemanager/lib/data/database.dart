@@ -5,13 +5,12 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:vehiclemanager/global/enum/checkin_state.dart';
+import 'package:vehiclemanager/global/summary.dart';
 import 'package:vehiclemanager/global/user.dart';
 import 'package:vehiclemanager/global/vehicle.dart';
 import 'package:vehiclemanager/logica/memory.dart';
 
 class MainDatabase {
-  // password : DikkeEzel
-  // password2: DikZwijn
   final Memory memory = Memory();
 
   void checkUser(String email, String password) {}
@@ -50,6 +49,29 @@ class MainDatabase {
       },
       onError: (e) => print("Error completing: $e"),
     );
+  }
+
+  Future<List<Summary>> getSummary() async {
+    final database = await getDatabase();
+    List<Summary> summary = List.empty(growable: true);
+
+    return await database
+        .collection("summary")
+        .get()
+        .then((querySnapshot) async {
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var docSnapshot in querySnapshot.docs) {
+          summary.add(Summary(
+              docSnapshot.data()["checkin_date"] == null
+                  ? null
+                  : DateTime.parse(docSnapshot.data()["checkin_date"]),
+              DateTime.parse(docSnapshot.data()["checkout_date"]),
+              await getUser(docSnapshot.data()["user_email"]),
+              await getVehicle(docSnapshot.data()["vehicle_plate"])));
+        }
+      }
+      return summary;
+    });
   }
 
   Future<User?> getUserDrivingVehicle(Vehicle vehicle) async {
@@ -113,6 +135,24 @@ class MainDatabase {
     return vehicles;
   }
 
+  Future<Vehicle?> getVehicle(String plate) async {
+    final database = await getDatabase();
+
+    return database
+        .collection("vehicle")
+        .where("plate", isEqualTo: plate)
+        .limit(1)
+        .get()
+        .then(
+      (querySnapshot) async {
+        var docSnapshot = querySnapshot.docs[0];
+        return Vehicle(docSnapshot.data()["name"], docSnapshot.data()["plate"],
+            docSnapshot.data()["seats"]);
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+  }
+
   Future<CheckinState> isVehicleAvailable(Vehicle vehicle) async {
     final database = await getDatabase();
     Future<User?>? user = memory.getUserFromMemory();
@@ -152,6 +192,23 @@ class MainDatabase {
     });
   }
 
+  Future<CheckinState> isUserBusy(User user) async {
+    final database = await getDatabase();
+
+    return await database
+        .collection("summary")
+        .where("checkin_date", isNull: true)
+        .where("user_email", isEqualTo: user.email)
+        .get()
+        .then(
+      (querySnapshot) async {
+        if (querySnapshot.docs.isNotEmpty) return CheckinState.CURRENT;
+        return CheckinState.AVAILABLE;
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
+  }
+
   Future<CheckinState?> checkOutVehicle(Vehicle vehicle) async {
     final database = await getDatabase();
     Future<User?>? user = memory.getUserFromMemory();
@@ -169,7 +226,6 @@ class MainDatabase {
           .where("vehicle_plate", isEqualTo: vehicle.plate)
           .where("checkin_date", isNull: true)
           .where("user_email", isEqualTo: value.email)
-          .limit(1)
           .get()
           .then(
         (querySnapshot) async {
