@@ -62,21 +62,36 @@ class _HomePagePhone extends State<HomePagePhone>
           }).toList();
           selectedItem = value.first;
 
-          database.isVehicleAvailable(selectedItem).then((value) {
-            setState(() {
-              checkinState = value;
+          bool ok = false;
 
-              if (value == CheckinState.NOT_AVAILABLE) {
-                database.getUserDrivingVehicle(selectedItem).then((value2) {
-                  setState(() {
-                    vehicleUser = value2;
+          for (int i = 0; i < value.length; i++){
+            database.isVehicleAvailable(value[i]).then((x) {
+            setState(() {
+              if (!ok && (x == CheckinState.CURRENT || value[i] == value.last)){
+                checkinState = x;
+                selectedItem = value[i];
+                if (x == CheckinState.NOT_AVAILABLE) {
+                  database.getUserDrivingVehicle(selectedItem).then((value2) {
+                    setState(() {
+                      vehicleUser = value2;
+                    });
                   });
-                });
-              } else {
-                vehicleUser = null;
+                } 
+                if (x == CheckinState.CURRENT) {
+                  database.getUserDrivingVehicle(selectedItem).then((value2) {
+                    setState(() {
+                      vehicleUser = value2;
+                    });
+                  });
+                } 
+                ok = true;
               }
             });
           });
+          }
+          if (!ok){
+            vehicleUser = null;
+          }
         });
       }
     });
@@ -227,6 +242,11 @@ class _HomePagePhone extends State<HomePagePhone>
                     child: Text(
                       "This vehicle is currently in use by ${vehicleUser == null ? "someone else!" : vehicleUser!.firstName} ${vehicleUser == null ? "" : vehicleUser!.lastName}",
                     )),
+                Visibility(
+                  visible: checkinState == CheckinState.CURRENT,
+                  child: Text(
+                    "You are currently checked in with: ${selectedItem?.name}",
+                  )),
                 Visibility(
                   visible: checkinState == CheckinState.AVAILABLE,
                   child: TextButton(
